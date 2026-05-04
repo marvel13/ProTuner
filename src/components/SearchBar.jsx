@@ -144,7 +144,8 @@ export function SearchBar({ onSongSelect, onResultsChange }) {
           onChange={handleQueryChange}
           onFocus={() => dropdownResults.length > 0 && setDropdownOpen(true)}
           placeholder="Search for a song…"
-          className="w-full bg-gray-800 text-white placeholder-gray-500 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-yellow-400 text-sm"
+          className="w-full bg-gray-800 text-white placeholder-gray-500 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-yellow-400"
+          style={{ fontSize: 16 }}
           autoComplete="off"
         />
         {loading && (
