@@ -18,7 +18,7 @@ html, body {
 }
 
 .tune-ring {
-  animation: fillRing 1s linear forwards;
+  animation: fillRing 1.5s linear forwards;
 }
 
 .toast {

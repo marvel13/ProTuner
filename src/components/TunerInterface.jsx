@@ -35,7 +35,7 @@ export function TunerInterface({ song, onBack }) {
 
   const clampedCents = Math.max(-50, Math.min(50, cents))
   const needleDeg = (clampedCents / 50) * 45
-  const inTune = !isSilent && !!detectedHz && Math.abs(cents) < 10
+  const inTune = !isSilent && !!detectedHz && Math.abs(cents) < 5
   const needleColor = inTune ? '#22c55e' : '#e74c3c'
 
   // Track inTune onset to restart the ring animation
@@ -52,7 +52,7 @@ export function TunerInterface({ song, onBack }) {
     const timer = setTimeout(() => {
       setTunedStrings((prev) => new Set(prev).add(activeIndex))
       setToastNote(midiToNote(song.tuning[activeIndex]))
-    }, 1000)
+    }, 1500)
     return () => clearTimeout(timer)
   }, [inTune, activeIndex])
 
