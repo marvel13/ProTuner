@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 
-const LENGTH = 32
+const MAX_BARS = 32
+const MIN_BAR_WIDTH = 14  // px — keeps bars visually thick on narrow screens
 
 export function FrequencyBars({ analyserRef }) {
   const canvasRef = useRef(null)
@@ -25,13 +26,15 @@ export function FrequencyBars({ analyserRef }) {
         const data = new Uint8Array(analyser.frequencyBinCount)
         analyser.getByteFrequencyData(data)
 
-        const barWidth = canvas.width / LENGTH - 0.5
+        const numBars = Math.min(MAX_BARS, Math.floor(canvas.width / MIN_BAR_WIDTH))
+        const gap = 2
+        const barWidth = canvas.width / numBars - gap
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         ctx.fillStyle = '#1f2937'
 
-        for (let i = 0; i < LENGTH; i++) {
+        for (let i = 0; i < numBars; i++) {
           ctx.fillRect(
-            i * (barWidth + 0.5),
+            i * (barWidth + gap),
             canvas.height - data[i],
             barWidth,
             data[i]

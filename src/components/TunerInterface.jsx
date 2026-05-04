@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { usePitchDetector } from '../hooks/usePitchDetector'
 import { midiToHz, midiToNote } from '../utils/midi'
 import { TunerDial } from './TunerDial'
@@ -15,6 +15,10 @@ function parseNote(midi) {
 
 export function TunerInterface({ song, onBack }) {
   const [activeIndex, setActiveIndex] = useState(song.tuning.length - 1)
+  const [tunedStrings, setTunedStrings] = useState(new Set())
+  const [toastNote, setToastNote] = useState(null)
+  const [inTuneStartKey, setInTuneStartKey] = useState(0)
+  const prevInTuneRef = useRef(false)
   const { detectedHz, isSilent, isListening, analyserRef, start, stop } = usePitchDetector()
 
   useEffect(() => {
@@ -33,6 +37,35 @@ export function TunerInterface({ song, onBack }) {
   const needleDeg = (clampedCents / 50) * 45
   const inTune = !isSilent && !!detectedHz && Math.abs(cents) < 10
   const needleColor = inTune ? '#22c55e' : '#e74c3c'
+
+  // Track inTune onset to restart the ring animation
+  useEffect(() => {
+    if (inTune && !prevInTuneRef.current) {
+      setInTuneStartKey((k) => k + 1)
+    }
+    prevInTuneRef.current = inTune
+  }, [inTune])
+
+  // Mark string as tuned after holding in tune for 2s
+  useEffect(() => {
+    if (!inTune) return
+    const timer = setTimeout(() => {
+      setTunedStrings((prev) => new Set(prev).add(activeIndex))
+      setToastNote(midiToNote(song.tuning[activeIndex]))
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [inTune, activeIndex])
+
+  // Auto-clear toast after 2s
+  useEffect(() => {
+    if (!toastNote) return
+    const timer = setTimeout(() => setToastNote(null), 2000)
+    return () => clearTimeout(timer)
+  }, [toastNote])
+
+  const handleStringSelect = (i) => {
+    setActiveIndex(i)
+  }
 
   // tuning array is high→low; reverse to show low→high
   const stringsLowToHigh = song.tuning.map((midi, i) => ({ midi, i })).reverse()
@@ -85,6 +118,25 @@ export function TunerInterface({ song, onBack }) {
         {isListening ? '● live' : '○ mic off'}
       </div>
 
+      {/* Toast notification */}
+      {toastNote && (
+        <div className="toast" style={{
+          position: 'fixed',
+          top: 24,
+          left: '50%',
+          background: '#22c55e',
+          color: '#030712',
+          borderRadius: 20,
+          padding: '6px 18px',
+          fontWeight: 600,
+          fontSize: 14,
+          zIndex: 10,
+          pointerEvents: 'none',
+        }}>
+          ✅ {toastNote} tuned!
+        </div>
+      )}
+
       {/* Meter */}
       <TunerDial needleDeg={needleDeg} isSilent={isSilent} needleColor={needleColor} />
 
@@ -114,10 +166,16 @@ export function TunerInterface({ song, onBack }) {
           {stringsLowToHigh.map(({ midi, i }) => {
             const { letter, sharp, octave } = parseNote(midi)
             const isActive = i === activeIndex
+            const isTuned = tunedStrings.has(i)
+            const color = isActive
+              ? (inTune ? '#22c55e' : '#e74c3c')
+              : isTuned
+              ? '#16a34a'
+              : '#6b7280'
             return (
               <div
                 key={i}
-                onClick={() => setActiveIndex(i)}
+                onClick={() => handleStringSelect(i)}
                 style={{
                   fontSize: 'clamp(20px, 11vw, 90px)',
                   fontWeight: 'bold',
@@ -125,12 +183,44 @@ export function TunerInterface({ song, onBack }) {
                   position: 'relative',
                   paddingRight: 'clamp(12px, 3.5vw, 30px)',
                   paddingLeft: 'clamp(4px, 1.2vw, 10px)',
-                  color: isActive ? '#e74c3c' : '#374151',
+                  color,
+                  transition: 'color 0.3s ease',
                   cursor: 'pointer',
                   WebkitTapHighlightColor: 'transparent',
                 }}
               >
-                {letter}
+                {/* Letter wrapped so ring can center on it alone */}
+                <span style={{ position: 'relative', display: 'inline-block' }}>
+                  {letter}
+                  {isActive && inTune && (
+                    <svg
+                      key={inTuneStartKey}
+                      style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '1.35em',
+                        height: '1.35em',
+                        pointerEvents: 'none',
+                        overflow: 'visible',
+                      }}
+                      viewBox="0 0 80 80"
+                    >
+                      <circle
+                        cx="40" cy="40" r="36"
+                        fill="none"
+                        stroke="#22c55e"
+                        strokeWidth="3"
+                        strokeDasharray="226"
+                        strokeDashoffset="226"
+                        strokeLinecap="round"
+                        transform="rotate(-90 40 40)"
+                        className="tune-ring"
+                      />
+                    </svg>
+                  )}
+                </span>
                 <span
                   style={{
                     position: 'absolute',

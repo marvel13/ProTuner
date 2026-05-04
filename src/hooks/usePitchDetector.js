@@ -1,7 +1,9 @@
 import { useState, useRef, useCallback } from 'react'
 import { PitchDetector } from 'pitchy'
 
-const BUFFER_SIZE = 4096
+const BUFFER_SIZE = 8192
+const STABILITY_FRAMES = 2
+const MEDIAN_WINDOW = 5
 
 export function usePitchDetector() {
   const [detectedHz, setDetectedHz] = useState(null)
@@ -55,33 +57,53 @@ export function usePitchDetector() {
       analyser.connect(processor)
       processor.connect(context.destination)
 
-      let lastNote = -1
+      let lastMidi = -1
+      let stableFrames = 0
+      const freqWindow = []
+
+      const median = (arr) => {
+        const s = [...arr].sort((a, b) => a - b)
+        return s[Math.floor(s.length / 2)]
+      }
 
       processor.addEventListener('audioprocess', (event) => {
         const input = event.inputBuffer.getChannelData(0)
 
-        // RMS energy gate — ignore anything below ambient noise floor
+        // RMS energy gate
         let sum = 0
         for (let i = 0; i < input.length; i++) sum += input[i] * input[i]
         const rms = Math.sqrt(sum / input.length)
         if (rms < 0.001) {
-          lastNote = -1
+          lastMidi = -1
+          stableFrames = 0
+          freqWindow.length = 0
           setIsSilent(true)
           return
         }
 
         const frequency = pitchDetector.do(input)
         if (frequency) {
-          const note = Math.round(12 * Math.log2(frequency / 440) + 69) % 12
-          if (note === lastNote) {
-            setDetectedHz(frequency)
-            setIsSilent(false)
+          // Use full MIDI note (including octave) so E2 vs E3 are treated as different
+          const midi = Math.round(12 * Math.log2(frequency / 440) + 69)
+
+          if (lastMidi !== -1 && Math.abs(midi - lastMidi) <= 2) {
+            stableFrames++
           } else {
-            lastNote = note
-            setIsSilent(true)
+            stableFrames = 1
+            freqWindow.length = 0
+          }
+          lastMidi = midi
+
+          if (stableFrames >= STABILITY_FRAMES) {
+            freqWindow.push(frequency)
+            if (freqWindow.length > MEDIAN_WINDOW) freqWindow.shift()
+            setDetectedHz(median(freqWindow))
+            setIsSilent(false)
           }
         } else {
-          lastNote = -1
+          lastMidi = -1
+          stableFrames = 0
+          freqWindow.length = 0
           setIsSilent(true)
         }
       })

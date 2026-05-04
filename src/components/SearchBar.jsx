@@ -29,9 +29,9 @@ async function fetchSongs(query) {
 }
 
 function SongItem({ song, onClick }) {
-  const noteNames = song.tuning.map(midiToNote)
+  const noteNames = [...song.tuning].reverse().map(midiToNote)
   return (
-    <button className="song-item" onMouseDown={onClick} onClick={onClick}>
+    <button type="button" className="song-item" onMouseDown={onClick} onClick={onClick}>
       <div className="song-info">
         <p className="song-title">{song.title}</p>
         <p className="song-artist">{song.artist}</p>
