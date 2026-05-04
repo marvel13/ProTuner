@@ -3,7 +3,7 @@ import { midiToNote } from '../utils/midi'
 
 const API_BASE = import.meta.env.DEV
   ? '/api/songsterr'
-  : 'https://www.songsterr.com/api'
+  : 'https://protuner-proxy.salwynm.workers.dev'
 
 async function fetchSongs(query) {
   const url = `${API_BASE}/search?pattern=${encodeURIComponent(query)}&inst=undefined&tuning=undefined&difficulty=undefined&size=20&from=0&more=true`
