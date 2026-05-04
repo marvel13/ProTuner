@@ -1,8 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { midiToNote } from '../utils/midi'
 
+const API_BASE = import.meta.env.DEV
+  ? '/api/songsterr'
+  : 'https://www.songsterr.com/api'
+
 async function fetchSongs(query) {
-  const url = `/api/songsterr/search?pattern=${encodeURIComponent(query)}&inst=undefined&tuning=undefined&difficulty=undefined&size=20&from=0&more=true`
+  const url = `${API_BASE}/search?pattern=${encodeURIComponent(query)}&inst=undefined&tuning=undefined&difficulty=undefined&size=20&from=0&more=true`
   const res = await fetch(url)
   if (!res.ok) throw new Error('Search failed')
   const data = await res.json()
