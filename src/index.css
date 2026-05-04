@@ -1,1 +1,99 @@
 @import "tailwindcss";
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.result-item {
+  animation: fadeSlideIn 0.25s ease both;
+}
+
+.song-item {
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #111827;
+  min-height: 52px;
+}
+
+.song-item:hover {
+  background: #1f2937;
+}
+
+.song-title {
+  color: #fff;
+  font-weight: 500;
+  margin: 0;
+  font-size: clamp(13px, 3.5vw, 15px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.song-artist {
+  color: #9ca3af;
+  margin: 2px 0 0;
+  font-size: clamp(11px, 2.8vw, 12px);
+}
+
+.song-notes {
+  color: #facc15;
+  font-family: monospace;
+  margin: 0;
+  font-size: clamp(10px, 2.5vw, 12px);
+  white-space: nowrap;
+}
+
+.song-track {
+  color: #6b7280;
+  margin: 2px 0 0;
+  font-size: clamp(10px, 2.5vw, 11px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.song-meta {
+  text-align: right;
+  flex-shrink: 0;
+  max-width: 45%;
+}
+
+.song-info {
+  flex: 1;
+  min-width: 0;
+}
+
+/* On very small screens, stack meta below title */
+@media (max-width: 380px) {
+  .song-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 10px 14px;
+  }
+
+  .song-meta {
+    text-align: left;
+    max-width: 100%;
+  }
+
+  .song-track {
+    max-width: 100%;
+  }
+}
