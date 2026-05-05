@@ -118,14 +118,14 @@ export function TunerInterface({ song, onBack }) {
             padding: '6px 12px',
             borderRadius: 20,
             display: 'block',
-            marginBottom: 6,
+            marginBottom: 12,
             WebkitTapHighlightColor: 'transparent',
           }}
         >
           ← Back
         </button>
-        <div style={{ fontSize: 13, color: '#9ca3af', fontWeight: 500 }}>{song.title}</div>
-        <div style={{ fontSize: 11, color: '#6b7280' }}>{song.artist}</div>
+        <div style={{ fontSize: 15, color: '#9ca3af', fontWeight: 500 }}>{song.title}</div>
+        <div style={{ fontSize: 13, color: '#6b7280' }}>{song.artist}</div>
       </div>
 
       {/* Listening indicator + auto toggle */}
