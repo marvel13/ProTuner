@@ -134,12 +134,12 @@ export function TunerInterface({ song, onBack }) {
           {isListening ? '● live' : '○ mic off'}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 10, color: '#6b7280' }}>Auto</span>
+          <span style={{ fontSize: 13, color: '#6b7280' }}>Auto</span>
           <div
             onClick={() => setAutoDetect(v => !v)}
             style={{
-              width: 'clamp(36px, 5vw, 52px)',
-              height: 'clamp(20px, 2.8vw, 28px)',
+              width: 'clamp(48px, 5vw, 52px)',
+              height: 'clamp(28px, 2.8vw, 28px)',
               borderRadius: 14,
               background: autoDetect ? '#22c55e' : '#374151',
               position: 'relative',
@@ -150,10 +150,10 @@ export function TunerInterface({ song, onBack }) {
           >
             <div style={{
               position: 'absolute',
-              top: 'clamp(3px, 0.4vw, 4px)',
-              left: autoDetect ? 'clamp(19px, 2.8vw, 28px)' : 'clamp(3px, 0.4vw, 4px)',
-              width: 'clamp(14px, 2vw, 20px)',
-              height: 'clamp(14px, 2vw, 20px)',
+              top: 4,
+              left: autoDetect ? 'clamp(24px, 2.8vw, 28px)' : 4,
+              width: 20,
+              height: 20,
               borderRadius: '50%',
               background: '#fff',
               transition: 'left 0.2s ease',
