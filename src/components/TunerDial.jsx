@@ -3,7 +3,7 @@ const SCALES = Array.from({ length: 11 }, (_, i) => ({
   strong: i % 5 === 0,
 }))
 
-export function TunerDial({ needleDeg, isSilent, needleColor }) {
+export function TunerDial({ needleDeg, isSilent, needleColor, detectedNote }) {
   return (
     <div
       style={{
@@ -34,6 +34,35 @@ export function TunerDial({ needleDeg, isSilent, needleColor }) {
           }}
         />
       ))}
+
+      {/* Detected note */}
+      {detectedNote && (() => {
+        const hasSharp = detectedNote[1] === '#'
+        const noteName = hasSharp ? detectedNote.slice(0, 2) : detectedNote[0]
+        const octave = detectedNote.slice(hasSharp ? 2 : 1)
+        return (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '30%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              fontSize: 'clamp(64px, 22vw, 90px)',
+              fontWeight: 'bold',
+              color: '#9ca3af',
+              pointerEvents: 'none',
+              display: 'flex',
+              alignItems: 'flex-end',
+              lineHeight: 1,
+            }}
+          >
+            {noteName}
+            <span style={{ fontSize: '40%', marginBottom: '0.15em', marginLeft: '0.05em', color: '#6b7280' }}>
+              {octave}
+            </span>
+          </div>
+        )
+      })()}
 
       {/* Pivot dot */}
       <div

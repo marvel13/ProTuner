@@ -18,6 +18,7 @@ export function TunerInterface({ song, onBack }) {
   const [tunedStrings, setTunedStrings] = useState(new Set())
   const [toastNote, setToastNote] = useState(null)
   const [inTuneStartKey, setInTuneStartKey] = useState(0)
+  const [autoDetect, setAutoDetect] = useState(true)
   const prevInTuneRef = useRef(false)
   const { detectedHz, isSilent, isListening, analyserRef, start, stop } = usePitchDetector()
 
@@ -35,7 +36,10 @@ export function TunerInterface({ song, onBack }) {
 
   const clampedCents = Math.max(-50, Math.min(50, cents))
   const needleDeg = (clampedCents / 50) * 45
-  const inTune = !isSilent && !!detectedHz && Math.abs(cents) < 5
+  const inTune = !isSilent && !!detectedHz && Math.abs(cents) < 10
+  const detectedNote = detectedHz && !isSilent
+    ? midiToNote(Math.round(12 * Math.log2(detectedHz / 440) + 69))
+    : null
   const needleColor = inTune ? '#22c55e' : '#e74c3c'
 
   // Track inTune onset to restart the ring animation
@@ -63,6 +67,24 @@ export function TunerInterface({ song, onBack }) {
     return () => clearTimeout(timer)
   }, [toastNote])
 
+  // Auto-detect which string the user is playing
+  const detectedStringIndex = useMemo(() => {
+    if (!detectedHz || isSilent) return null
+    let best = { i: null, diff: Infinity }
+    song.tuning.forEach((midi, i) => {
+      const diff = Math.abs(1200 * Math.log2(detectedHz / midiToHz(midi)))
+      if (diff < best.diff) best = { i, diff }
+    })
+    return best.diff < 250 ? best.i : null
+  }, [detectedHz, isSilent, song.tuning])
+
+  // Switch to detected string after 500ms of stable detection (only in auto mode)
+  useEffect(() => {
+    if (!autoDetect || detectedStringIndex === null || detectedStringIndex === activeIndex) return
+    const timer = setTimeout(() => setActiveIndex(detectedStringIndex), 500)
+    return () => clearTimeout(timer)
+  }, [detectedStringIndex, autoDetect])
+
   const handleStringSelect = (i) => {
     setActiveIndex(i)
   }
@@ -88,14 +110,16 @@ export function TunerInterface({ song, onBack }) {
         <button
           onClick={onBack}
           style={{
-            background: 'none',
-            border: 'none',
-            color: '#6b7280',
+            background: '#1f2937',
+            border: '1px solid #374151',
+            color: '#9ca3af',
             fontSize: 13,
             cursor: 'pointer',
-            padding: 0,
+            padding: '6px 12px',
+            borderRadius: 20,
             display: 'block',
-            marginBottom: 4,
+            marginBottom: 6,
+            WebkitTapHighlightColor: 'transparent',
           }}
         >
           ← Back
@@ -104,41 +128,62 @@ export function TunerInterface({ song, onBack }) {
         <div style={{ fontSize: 11, color: '#6b7280' }}>{song.artist}</div>
       </div>
 
-      {/* Listening indicator */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 16,
-          right: 16,
-          fontSize: 11,
-          color: isListening ? '#22c55e' : '#6b7280',
-          zIndex: 1,
-        }}
-      >
-        {isListening ? '● live' : '○ mic off'}
+      {/* Listening indicator + auto toggle */}
+      <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+        <div style={{ fontSize: 11, color: isListening ? '#22c55e' : '#6b7280' }}>
+          {isListening ? '● live' : '○ mic off'}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 10, color: '#6b7280' }}>Auto</span>
+          <div
+            onClick={() => setAutoDetect(v => !v)}
+            style={{
+              width: 'clamp(36px, 5vw, 52px)',
+              height: 'clamp(20px, 2.8vw, 28px)',
+              borderRadius: 14,
+              background: autoDetect ? '#22c55e' : '#374151',
+              position: 'relative',
+              cursor: 'pointer',
+              transition: 'background 0.2s ease',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >
+            <div style={{
+              position: 'absolute',
+              top: 'clamp(3px, 0.4vw, 4px)',
+              left: autoDetect ? 'clamp(19px, 2.8vw, 28px)' : 'clamp(3px, 0.4vw, 4px)',
+              width: 'clamp(14px, 2vw, 20px)',
+              height: 'clamp(14px, 2vw, 20px)',
+              borderRadius: '50%',
+              background: '#fff',
+              transition: 'left 0.2s ease',
+            }} />
+          </div>
+        </div>
       </div>
 
       {/* Toast notification */}
       {toastNote && (
         <div className="toast" style={{
           position: 'fixed',
-          top: 24,
+          top: '20%',
           left: '50%',
           background: '#22c55e',
           color: '#030712',
-          borderRadius: 20,
-          padding: '6px 18px',
-          fontWeight: 600,
-          fontSize: 14,
+          borderRadius: 28,
+          padding: '12px 28px',
+          fontWeight: 700,
+          fontSize: 'clamp(18px, 5vw, 24px)',
           zIndex: 10,
           pointerEvents: 'none',
+          whiteSpace: 'nowrap',
         }}>
           ✅ {toastNote} tuned!
         </div>
       )}
 
       {/* Meter */}
-      <TunerDial needleDeg={needleDeg} isSilent={isSilent} needleColor={needleColor} />
+      <TunerDial needleDeg={needleDeg} isSilent={isSilent} needleColor={needleColor} detectedNote={detectedNote} />
 
       {/* Notes / string selector — top: 50%, mirrors original .notes */}
       <div
@@ -252,6 +297,11 @@ export function TunerInterface({ song, onBack }) {
         <div style={{ fontSize: 'clamp(14px, 4vw, 32px)' }}>
           {isSilent || !detectedHz ? ' ' : detectedHz.toFixed(1)}
           <span style={{ fontSize: '50%', marginLeft: '0.25em', color: '#6b7280' }}>Hz</span>
+          {!isSilent && !!detectedHz && (
+            <span style={{ fontSize: '75%', marginLeft: '1em', color: inTune ? '#22c55e' : '#6b7280' }}>
+              {cents > 0 ? '+' : ''}{cents} cents
+            </span>
+          )}
         </div>
       </div>
 
