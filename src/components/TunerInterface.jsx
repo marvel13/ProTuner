@@ -13,18 +13,25 @@ function parseNote(midi) {
   return { letter, sharp, octave }
 }
 
-export function TunerInterface({ song, onBack }) {
+export function TunerInterface({ song, onBack, pitchOverride }) {
   const [activeIndex, setActiveIndex] = useState(song.tuning.length - 1)
   const [tunedStrings, setTunedStrings] = useState(new Set())
   const [toastNote, setToastNote] = useState(null)
   const [inTuneStartKey, setInTuneStartKey] = useState(0)
   const [autoDetect, setAutoDetect] = useState(true)
   const prevInTuneRef = useRef(false)
-  const { detectedHz, isSilent, isListening, analyserRef, start, stop } = usePitchDetector()
+  const nullRef = useRef(null)
+  const internal = usePitchDetector()
+
+  const detectedHz = pitchOverride ? pitchOverride.detectedHz : internal.detectedHz
+  const isSilent = pitchOverride ? pitchOverride.isSilent : internal.isSilent
+  const isListening = pitchOverride ? pitchOverride.isListening : internal.isListening
+  const analyserRef = pitchOverride ? (pitchOverride.analyserRef ?? nullRef) : internal.analyserRef
 
   useEffect(() => {
-    start()
-    return () => stop()
+    if (pitchOverride) return
+    internal.start()
+    return () => internal.stop()
   }, [])
 
   const targetHz = midiToHz(song.tuning[activeIndex])
@@ -306,7 +313,7 @@ export function TunerInterface({ song, onBack }) {
       </div>
 
       {/* Frequency bars */}
-      <FrequencyBars analyserRef={analyserRef} />
+      {!pitchOverride && <FrequencyBars analyserRef={analyserRef} />}
     </div>
   )
 }
