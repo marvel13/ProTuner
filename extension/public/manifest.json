@@ -5,9 +5,19 @@
   "description": "Tune your guitar to match any YouTube lesson",
   "permissions": ["tabs", "offscreen"],
   "host_permissions": ["https://protuner-proxy.salwynm.workers.dev/*"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "ProTuner"
+    "default_title": "ProTuner",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
