@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "ProTuner",
+  "version": "1.0.0",
+  "description": "Tune your guitar to match any YouTube lesson",
+  "permissions": ["tabs", "windows"],
+  "host_permissions": ["https://protuner-proxy.salwynm.workers.dev/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ProTuner"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
