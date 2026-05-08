@@ -6,7 +6,7 @@ Search any song, get the tuning it requires, and tune your guitar string-by-stri
 
 ---
 
-<video src="protuner-promo/renders/protuner-promo.mp4" controls width="100%"></video>
+https://github.com/user-attachments/assets/5507f5ee-f9eb-4905-b15f-5eef9fabe86a
 
 ---
 
