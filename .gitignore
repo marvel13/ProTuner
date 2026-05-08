@@ -24,3 +24,7 @@ npm-debug.log*
 .cce/
 # Claude Code local settings written by cce init
 .claude/settings.local.json
+
+# HyperFrames renders
+protuner-promo/renders/
+protuner-promo/node_modules/
